@@ -11,24 +11,56 @@
 '''
 
 
-class CalculadoraRPN:
+class Calculadora:
 
     def __init__(self):
         self.pilha = []
 
+    # mostra estilo HP12c
+    def mostrar_pilha(self, evento):
+        print(f"\n[{evento}]")
+
+        x = self.pilha[-1] if len(self.pilha) >= 1 else 0
+        y = self.pilha[-2] if len(self.pilha) >= 2 else 0
+        z = self.pilha[-3] if len(self.pilha) >= 3 else 0
+        t = self.pilha[-4] if len(self.pilha) >= 4 else 0
+
+        print(f"T = {t}")
+        print(f"Z = {z}")
+        print(f"Y = {y}")
+        print(f"X = {x} <- display")
+
+    # converte RPN → infixa
+    def rpn_para_infixa(self, partes):
+        pilha_expr = []
+
+        for item in partes:
+            if item in ["+", "-", "*", "/"]:
+                b = pilha_expr.pop()
+                a = pilha_expr.pop()
+                pilha_expr.append(f"({a} {item} {b})")
+            else:
+                # tira .0 se for inteiro
+                num = float(item)
+                if num == int(num):
+                    pilha_expr.append(str(int(num)))
+                else:
+                    pilha_expr.append(str(num))
+
+        return pilha_expr[0]
+
     def calcular(self, expressao):
         print("\n--- Calculadora RPN ---")
-        print("Expressao digitada:", expressao)
+        print("Expressao:", expressao)
 
         partes = expressao.split()
 
         for item in partes:
 
-            # verifica se é operador
             if item in ["+", "-", "*", "/"]:
 
                 if len(self.pilha) < 2:
-                    print("Erro: poucos valores na pilha")
+                    print("Erro: poucos valores")
                     return
 
                 b = self.pilha.pop()
@@ -48,17 +80,16 @@ class CalculadoraRPN:
 
                 self.pilha.append(resultado)
 
-                print(f"Operacao: {a} {item} {b} = {resultado}")
-                print("Pilha agora:", self.pilha)
+                print(f"\nOperacao: {a} {item} {b} = {resultado}")
+                self.mostrar_pilha(f"Operacao {item}")
 
             else:
-                # tenta converter para numero
                 try:
                     numero = float(item)
                     self.pilha.append(numero)
 
-                    print(f"Numero inserido: {numero}")
-                    print("Pilha agora:", self.pilha)
+                    print(f"\nEntrada: {numero}")
+                    self.mostrar_pilha(f"Entrada {numero}")
 
                 except:
                     print("Erro: valor invalido ->", item)
@@ -68,20 +99,25 @@ class CalculadoraRPN:
         if len(self.pilha) == 1:
             resultado = self.pilha[0]
 
-            # mostra inteiro se possível
             if resultado == int(resultado):
                 resultado = int(resultado)
 
-            print("\nResultado final:", resultado)
+            # expressão infixa
+            expressao_infixa = self.rpn_para_infixa(partes)
+
+            print("\n----------------------------")
+            print("Expressao Infixa:", expressao_infixa)
+            print("Resultado final:", resultado)
+            print("----------------------------")
         else:
             print("\nErro: expressao incompleta")
 
 
 # programa principal
-calc = CalculadoraRPN()
+calc = Calculadora()
 
 while True:
-    entrada = input("\nDigite uma expressao RPN (ou 'sair'): ")
+    entrada = input("\nDigite RPN (ou sair): ")
 
     if entrada.lower() == "sair":
         print("Encerrando...")
@@ -90,5 +126,5 @@ while True:
     if entrada == "":
         continue
 
-    calc.pilha = []  # limpa antes de calcular
+    calc.pilha = []
     calc.calcular(entrada)
